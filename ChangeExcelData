@@ -1,0 +1,54 @@
+void ChangeExcelData()
+{
+    // this method was reading in all rows of the first column (an "id" column)
+    // then randomly assign a commodity to an id in a new column
+    // note, due to the id column not having uniqueness the dictionary assists in correctly assigning the same commodity to a give id
+    // id of 6 doesn't have both Oil and Gold as its commodity
+    
+    List<string> list = new List<string>()
+    {
+        "Oil", "Coal", "Gold", "Beef", "Wheat"
+    };
+
+    Random random = new Random();
+    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+    string excelFilePath = @"File\path";
+    using (ExcelPackage excelPackage = new ExcelPackage(new FileInfo(excelFilePath)))
+    {
+        ExcelWorkbook excelWorkbook = excelPackage.Workbook;
+        ExcelWorksheet excelWorksheet = excelWorkbook.Worksheets["All Sales"];
+
+        int colCount = excelWorksheet.Dimension.End.Column;  //get Column Count, not really needed but keeping for historical and future reference
+        int rowCount = excelWorksheet.Dimension.End.Row;     //get row count
+        List<int> productIds = new List<int>();
+
+        for (int row = 2; row <= rowCount; row++)
+        {
+            for (int col = 1; col <= 1; col++)
+            //for (int col = 1; col <= colCount; col++)
+            {
+                //Console.WriteLine(" Row:" + row + " column:" + col + " Value:" + excelWorksheet.Cells[row, col].Value?.ToString().Trim());
+                productIds.Add(Convert.ToInt32(excelWorksheet.Cells[row, col].Value?.ToString().Trim()));
+            }
+        }
+
+        Dictionary<int, string> dictionary = new Dictionary<int, string>();
+        int counter = 2;
+        foreach (int id in productIds)
+        {
+            int randomNumber = random.Next(5);
+
+            if (dictionary.ContainsKey(id))
+            {
+                excelWorksheet.Cells["I" + counter.ToString()].Value = dictionary[id];
+            }
+            else
+            {
+                dictionary.Add(id, list[randomNumber]);
+                excelWorksheet.Cells["I" + counter.ToString()].Value = list[randomNumber];
+            }
+            counter++;
+        }
+        excelPackage.Save();
+    }
+}
